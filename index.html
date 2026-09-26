@@ -1,272 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Attendance System</title>
-  <!-- QRCode Generator & HTML5 QR Scanner Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
-    body { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; }
-    
-    .container { background: #ffffff; width: 100%; max-width: 450px; border-radius: 16px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; position: relative; }
-    h1 { color: #1e3c72; margin-bottom: 8px; font-size: 24px; }
-    p.subtitle { color: #666; font-size: 13px; margin-bottom: 20px; }
-    
-    /* Home Portal Cards */
-    .portal-cards { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
-    .card-btn { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; padding: 18px; cursor: pointer; transition: all 0.3s ease; text-align: left; display: flex; align-items: center; gap: 15px; }
-    .card-btn:hover { border-color: #007bff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,123,255,0.15); }
-    .card-icon { font-size: 28px; background: #e7f1ff; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
-    .card-text h3 { color: #333; font-size: 16px; margin-bottom: 4px; }
-    .card-text p { color: #777; font-size: 12px; }
-
-    /* Back Button */
-    .nav-back { display: none; position: absolute; top: 20px; left: 20px; background: #e9ecef; border: none; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: bold; color: #495057; }
-
-    /* Panels */
-    .panel { display: none; margin-top: 15px; }
-    
-    /* Inputs & Buttons */
-    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ced4da; border-radius: 8px; font-size: 14px; outline: none; }
-    input:focus { border-color: #007bff; }
-    .btn { width: 100%; padding: 12px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 14px; transition: background 0.2s; }
-    .btn-success { background: #28a745; color: #fff; }
-    .btn-success:hover { background: #218838; }
-    .btn-danger { background: #dc3545; color: #fff; }
-    .btn-danger:hover { background: #c82333; }
-
-    /* QR & Scanner */
-    #qrcode { display: flex; justify-content: center; margin: 15px 0; }
-    #reader { width: 100%; margin-top: 10px; border-radius: 8px; overflow: hidden; }
-
-    /* Table Styling */
-    .table-container { max-height: 200px; overflow-y: auto; margin-top: 15px; border: 1px solid #dee2e6; border-radius: 8px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #dee2e6; }
-    th { background: #007bff; color: #fff; position: sticky; top: 0; }
-
-    #status { font-weight: bold; margin-top: 12px; font-size: 13px; color: #555; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart QR Attendance System</title>
+    <!-- QR Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; margin: 0; padding: 20px; text-align: center; }
+        .card { background: #fff; max-width: 450px; margin: 20px auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-group { margin-bottom: 20px; }
+        button { background: #007bff; color: white; border: none; padding: 12px 20px; font-size: 15px; border-radius: 6px; cursor: pointer; margin: 5px; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        input { padding: 12px; width: 85%; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+        .success { color: #28a745; font-weight: bold; font-size: 18px; margin-top: 15px; background: #e8f8ec; padding: 10px; border-radius: 6px; }
+        .error { color: #dc3545; font-weight: bold; font-size: 18px; margin-top: 15px; background: #fde8e8; padding: 10px; border-radius: 6px; }
+        #reader { width: 100%; margin-top: 15px; }
+        #qr-box img { margin-top: 10px; border: 4px solid #007bff; border-radius: 8px; }
+    </style>
 </head>
 <body>
 
-  <div class="container">
-    <button class="nav-back" id="backBtn" onclick="showHome()">← Home</button>
-    <h1>Smart Attendance</h1>
-    <p class="subtitle">Location-based QR Attendance System</p>
-
-    <!-- HOME PAGE PORTAL -->
-    <div id="homePortal" class="portal-cards">
-      <div class="card-btn" onclick="openPanel('teacher')">
-        <div class="card-icon">👨‍🏫</div>
-        <div class="card-text">
-          <h3>Teacher Mode</h3>
-          <p>Generate Dynamic QR & View Live Logs</p>
-        </div>
-      </div>
-      <div class="card-btn" onclick="openPanel('student')">
-        <div class="card-icon">🎓</div>
-        <div class="card-text">
-          <h3>Student Mode</h3>
-          <p>Scan QR Code & Mark Attendance</p>
-        </div>
-      </div>
+<div class="card">
+    <h2>Smart QR Attendance</h2>
+    
+    <!-- Mode Switcher -->
+    <div class="btn-group">
+        <button onclick="setMode('teacher')">Teacher Mode</button>
+        <button onclick="setMode('student')">Student Mode</button>
     </div>
 
     <!-- TEACHER PANEL -->
-    <div id="teacherPanel" class="panel">
-      <h3>Teacher Portal</h3>
-      <div id="qrcode"></div>
-      <p style="color:#dc3545; font-size:12px; font-weight:600;">🔄 QR Refreshes automatically every 5s</p>
-      
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr><th>Name</th><th>Roll</th><th>Time</th><th>Status</th></tr>
-          </thead>
-          <tbody id="attendanceLog"></tbody>
-        </table>
-      </div>
-
-      <button class="btn btn-success" onclick="exportCSV()">📥 Download CSV Sheet</button>
-      <button class="btn btn-danger" style="margin-top:5px;" onclick="clearData()">🗑️ Clear Saved Records</button>
+    <div id="teacher-panel" style="display:none;">
+        <h3>Teacher Mode</h3>
+        <p id="teacher-status">GPS Fetching...</p>
+        <div id="qr-box"></div>
+        <p id="teacher-coords" style="font-size: 12px; color: #666; margin-top: 10px;"></p>
+        <p style="font-size: 11px; color: #28a745;">⚡ QR Refreshes automatically every 15s</p>
     </div>
 
     <!-- STUDENT PANEL -->
-    <div id="studentPanel" class="panel">
-      <h3>Student Portal</h3>
-      <input type="text" id="sName" placeholder="Enter Full Name">
-      <input type="text" id="sRoll" placeholder="Enter Roll Number">
-      <div id="reader"></div>
-      <p id="status">📍 Fetching GPS Location...</p>
+    <div id="student-panel" style="display:none;">
+        <h3>Student Mode</h3>
+        <input type="text" id="student-name" placeholder="Apna Full Name Daalein" required>
+        <div id="reader"></div>
+        <p id="student-status"></p>
     </div>
-  </div>
+</div>
 
-  <script>
-    // Classroom Geo Location Config (Set your Classroom Coordinates here)
-    const CLASS_LAT = 28.4595, CLASS_LNG = 77.5020, RADIUS_METERS = 50;
-    let qr, timer, currentToken, userLat, userLng, html5QrcodeScanner;
-    
-    // Load Saved Data from LocalStorage on Startup
-    let attendanceData = JSON.parse(localStorage.getItem('smart_attendance_records')) || [];
+<script>
+    let teacherLat = null;
+    let teacherLon = null;
+    let qrInterval = null;
+    let html5QrcodeScanner = null;
 
-    function showHome() {
-      stopScanner();
-      clearInterval(timer);
-      document.getElementById('homePortal').style.display = 'flex';
-      document.getElementById('teacherPanel').style.display = 'none';
-      document.getElementById('studentPanel').style.display = 'none';
-      document.getElementById('backBtn').style.display = 'none';
+    const gpsOptions = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    };
+
+    function setMode(mode) {
+        document.getElementById('teacher-panel').style.display = mode === 'teacher' ? 'block' : 'none';
+        document.getElementById('student-panel').style.display = mode === 'student' ? 'block' : 'none';
+        
+        if (qrInterval) clearInterval(qrInterval);
+        
+        if (mode === 'teacher') {
+            initTeacherGPS();
+        } else if (mode === 'student') {
+            initStudentScanner();
+        }
     }
 
-    function openPanel(mode) {
-      document.getElementById('homePortal').style.display = 'none';
-      document.getElementById('backBtn').style.display = 'block';
-
-      if (mode === 'teacher') {
-        document.getElementById('teacherPanel').style.display = 'block';
-        if (!qr) qr = new QRCode(document.getElementById("qrcode"), { width: 160, height: 160 });
-        generateDynamicQR();
-        timer = setInterval(generateDynamicQR, 5000);
-        renderTable();
-      } else if (mode === 'student') {
-        document.getElementById('studentPanel').style.display = 'block';
-        initStudentGPS();
-      }
+    // --- TEACHER LOGIC ---
+    function initTeacherGPS() {
+        document.getElementById('teacher-status').innerText = "Device GPS Lock Ho Raha Hai...";
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                teacherLat = pos.coords.latitude;
+                teacherLon = pos.coords.longitude;
+                
+                document.getElementById('teacher-status').innerText = "Live Dynamic QR Ready!";
+                document.getElementById('teacher-coords').innerText = `Locked Location: ${teacherLat.toFixed(5)}, ${teacherLon.toFixed(5)}`;
+                
+                generateDynamicQR();
+                // Refresh QR code every 15 seconds
+                qrInterval = setInterval(generateDynamicQR, 15000); 
+            }, err => {
+                document.getElementById('teacher-status').innerText = "GPS Error: " + err.message;
+            }, gpsOptions);
+        }
     }
 
-    // Dynamic QR Generator
     function generateDynamicQR() {
-      currentToken = "ATT_TOK_" + Math.random().toString(36).substring(2, 8).toUpperCase();
-      qr.clear();
-      qr.makeCode(currentToken);
-    }
-
-    // GPS Location Fetch
-    function initStudentGPS() {
-      const status = document.getElementById('status');
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          userLat = pos.coords.latitude;
-          userLng = pos.coords.longitude;
-          status.innerText = "✅ Location Verified! Start scanning.";
-          status.style.color = "green";
-          startScanner();
-        }, err => {
-          status.innerText = "❌ Location Access Denied! Please enable GPS.";
-          status.style.color = "red";
-        }, { enableHighAccuracy: true });
-      } else {
-        status.innerText = "❌ Geolocation is not supported by your browser.";
-      }
-    }
-
-    // Back Camera QR Scanner Start
-    function startScanner() {
-      html5QrcodeScanner = new Html5Qrcode("reader");
-      const config = { fps: 10, qrbox: { width: 200, height: 200 } };
-      
-      // Try launching back camera first (environment)
-      html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
-        .catch(() => {
-          // Fallback to front camera if back camera isn't available
-          html5QrcodeScanner.start({ facingMode: "user" }, config, onScanSuccess);
+        // 15-second dynamic time token
+        let timeToken = Math.floor(Date.now() / 15000); 
+        let payload = JSON.stringify({
+            token: timeToken,
+            lat: teacherLat,
+            lon: teacherLon
         });
+
+        document.getElementById('qr-box').innerHTML = 
+            `<img src="https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(payload)}" />`;
     }
 
-    function stopScanner() {
-      if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-        html5QrcodeScanner.stop().then(() => html5QrcodeScanner.clear());
-      }
+    // --- STUDENT LOGIC ---
+    function initStudentScanner() {
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 220 });
+            html5QrcodeScanner.render(onScanSuccess);
+        }
     }
 
-    // Attendance Scanning Logic
-    function onScanSuccess(scannedCode) {
-      const name = document.getElementById('sName').value.trim();
-      const roll = document.getElementById('sRoll').value.trim();
-      const status = document.getElementById('status');
+    function onScanSuccess(decodedText) {
+        let studentName = document.getElementById('student-name').value.trim();
+        if (!studentName) {
+            alert("Pehle Apna Name Fill Karein!");
+            return;
+        }
 
-      if (!name || !roll) {
-        alert("⚠️ Please enter your Name and Roll Number first!");
-        return;
-      }
-
-      if (!scannedCode.startsWith("ATT_TOK_")) {
-        alert("❌ Invalid QR Code!");
-        return;
-      }
-
-      const distance = calculateDistance(CLASS_LAT, CLASS_LNG, userLat, userLng);
-
-      if (distance <= RADIUS_METERS) {
-        const timeString = new Date().toLocaleTimeString();
-        
-        // Save to Permanent LocalStorage Data
-        const record = { name, roll, time: timeString, status: "PRESENT" };
-        attendanceData.push(record);
-        localStorage.setItem('smart_attendance_records', JSON.stringify(attendanceData));
-
-        status.innerText = `🎉 Success! Attendance Marked for ${name}`;
-        status.style.color = "green";
-        alert(`Success! Attendance marked for ${name} (${roll})`);
-        
-        stopScanner();
-      } else {
-        status.innerText = `❌ Failed! You are outside the classroom (${Math.round(distance)}m away).`;
-        status.style.color = "red";
-      }
+        try {
+            let data = JSON.parse(decodedText);
+            verifyAndSubmit(data, studentName);
+        } catch (e) {
+            showStatus("Invalid QR Code!", "error");
+        }
     }
 
-    // Render Saved Attendance Data Table
-    function renderTable() {
-      const tbody = document.getElementById('attendanceLog');
-      tbody.innerHTML = '';
-      attendanceData.forEach(row => {
-        tbody.innerHTML += `<tr><td>${row.name}</td><td>${row.roll}</td><td>${row.time}</td><td style="color:green; font-weight:bold;">${row.status}</td></tr>`;
-      });
+    // Haversine Distance Formula (Meters)
+    function getDistanceInMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
-    // Download Attendance as CSV Excel Sheet
-    function exportCSV() {
-      if (!attendanceData.length) {
-        alert("No attendance records found!");
-        return;
-      }
-      let csvContent = "Name,Roll Number,Time,Status\n" + 
-        attendanceData.map(r => `"${r.name}","${r.roll}","${r.time}","${r.status}"`).join("\n");
-      
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute("download", `Attendance_Report_${new Date().toISOString().slice(0,10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    function verifyAndSubmit(qrData, studentName) {
+        showStatus("Location Verification In Progress...", "");
+
+        navigator.geolocation.getCurrentPosition(pos => {
+            let sLat = pos.coords.latitude;
+            let sLon = pos.coords.longitude;
+
+            let distance = getDistanceInMeters(qrData.lat, qrData.lon, sLat, sLon);
+            let currentTimeToken = Math.floor(Date.now() / 15000);
+
+            // 1. Time Expiry Check (15-sec window check)
+            if (Math.abs(currentTimeToken - qrData.token) > 2) {
+                showStatus("QR Code Expire Ho Chuka Hai (Proxy Failed)!", "error");
+                return;
+            }
+
+            // 2. Hybrid Distance Limit (Laptop PC support up to 15,000m error)
+            let maxAllowedDistance = 15000; // Laptop IP GPS Offset Allowed
+
+            if (distance <= maxAllowedDistance) {
+                showStatus(`Success! Attendance Marked for ${studentName} (${Math.round(distance)}m away)`, "success");
+            } else {
+                showStatus(`Proxy Blocked! Aap Classroom se ${Math.round(distance)}m dur hain!`, "error");
+            }
+
+        }, err => {
+            showStatus("GPS Error: " + err.message, "error");
+        }, gpsOptions);
     }
 
-    // Clear Saved Data
-    function clearData() {
-      if (confirm("Are you sure you want to clear all attendance records?")) {
-        attendanceData = [];
-        localStorage.removeItem('smart_attendance_records');
-        renderTable();
-      }
+    function showStatus(msg, type) {
+        let el = document.getElementById('student-status');
+        el.className = type;
+        el.innerText = msg;
     }
+</script>
 
-    // Haversine Formula for Distance Calculation (Meters)
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371e3; // Earth radius in meters
-      const rad = Math.PI / 180;
-      const dLat = (lat2 - lat1) * rad;
-      const dLon = (lon2 - lon1) * rad;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-  </script>
 </body>
+</html>
